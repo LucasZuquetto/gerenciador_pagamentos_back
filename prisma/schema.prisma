@@ -1,0 +1,24 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Contas {
+  id           Int            @id @default(autoincrement())
+  tipo  TipoDaConta
+  valor          Int
+  propriedade    Int
+  vencimento     DateTime
+}
+
+enum TipoDaConta {
+  A_Pagar
+  A_Receber
+}
