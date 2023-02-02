@@ -1,11 +1,12 @@
 import { Readable } from "stream";
 import readLine from "readline";
 import dayjs from "dayjs";
-import weekday from "dayjs/plugin/weekday.js"
+import weekday from "dayjs/plugin/weekday.js";
+import { getPaymentsRepository } from "../repositories/payments-repository.js";
 
-export default async function paymentsService(file) {
+export async function createPaymentsService(file) {
    const { buffer } = file;
-   dayjs.extend(weekday)
+   dayjs.extend(weekday);
 
    const readableFile = new Readable();
    readableFile.push(buffer);
@@ -35,13 +36,21 @@ async function createArrayOfPayments(data) {
                booking.totalReservaSemImposto -
                booking.comissaoIntermediarioPersonalizada,
             propriedade: booking.propriedade,
-            vencimento: dayjs(dateCheckOut).format("DD-MM-YYYY")
+            vencimento: dayjs(dateCheckOut).format("DD-MM-YYYY"),
+            mesVencimento: dayjs(dateCheckOut).format("MM-YYYY"),
          });
          payments.push({
             tipo: "A_Pagar",
             valor: booking.extrasSemImpostos,
             propriedade: booking.propriedade,
-            vencimento: dayjs(dateCheckOut).day(2).add(7,"day").format("DD-MM-YYYY"),
+            vencimento: dayjs(dateCheckOut)
+               .day(2)
+               .add(7, "day")
+               .format("DD-MM-YYYY"),
+            mesVencimento: dayjs(dateCheckOut)
+               .day(2)
+               .add(7, "day")
+               .format("MM-YYYY"),
          });
       } else if (booking.portal === "Airbnb.com") {
          payments.push({
@@ -50,14 +59,21 @@ async function createArrayOfPayments(data) {
                booking.totalReservaSemImposto -
                booking.comissaoIntermediarioPersonalizada,
             propriedade: booking.propriedade,
-            vencimento:
-               dayjs(dateCheckin).add(5, "day").format("DD-MM-YYYY"),
+            vencimento: dayjs(dateCheckin).add(5, "day").format("DD-MM-YYYY"),
+            mesVencimento: dayjs(dateCheckin).add(5, "day").format("MM-YYYY"),
          });
          payments.push({
             tipo: "A_Pagar",
             valor: booking.extrasSemImpostos,
             propriedade: booking.propriedade,
-            vencimento: dayjs(dateCheckOut).day(2).add(7,"day").format("DD-MM-YYYY"),
+            vencimento: dayjs(dateCheckOut)
+               .day(2)
+               .add(7, "day")
+               .format("DD-MM-YYYY"),
+            mesVencimento: dayjs(dateCheckOut)
+               .day(2)
+               .add(7, "day")
+               .format("MM-YYYY"),
          });
       }
    }
@@ -103,4 +119,28 @@ async function addDataInArray(bookingsLine) {
       });
    }
    return bookings;
+}
+
+export async function getPaymentsService(filter, value) {
+   const regex =
+      /^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$/;
+   if ((filter && value === undefined) || value === "") {
+      throw new Error("Value field not found");
+   }
+   if (filter === undefined) {
+      const payments = getPaymentsRepository();
+      return payments;
+   }
+   if (filter != "tipo" && filter != "vencimento" && filter != "propriedade") {
+      throw new Error("Filter field invalid");
+   }
+   if (filter === "vencimento" && !regex.test(value)) {
+      throw new Error("Value field invalid");
+   } else if (filter === "tipo" && value != "A_Receber" && value != "A_Pagar") {
+      throw new Error("Value field invalid");
+   } else if (filter === "propriedade" && isNaN(value)) {
+      throw new Error("Value field invalid");
+   }
+   const payments = getPaymentsRepository(filter, value);
+   return payments;
 }

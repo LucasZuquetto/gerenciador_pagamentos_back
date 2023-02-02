@@ -1,14 +1,38 @@
-import paymentRepository from "../repositories/payments-repository.js";
-import paymentsService from "../services/payments-service.js";
+import { createPaymentsRepository } from "../repositories/payments-repository.js";
+import { createPaymentsService, getPaymentsService } from "../services/payments-service.js";
 
-export default async function paymentsController(req, res) {
+export async function createPaymentsController(req, res) {
    const { file } = req;
    try {
-      const payments = await paymentsService(file);
-      // await paymentRepository(payments);
+      const payments = await createPaymentsService(file);
+      await createPaymentsRepository(payments);
       res.send(payments);
    } catch (error) {
       console.log(error.message);
       return res.sendStatus(500);
+   }
+}
+
+export async function getPaymentsController(req, res) {
+   const {filter, value} = req.query
+   try {
+      const payments = await getPaymentsService(filter, value)
+      res.send(payments)
+   } catch (error) {
+      if (error.message === "Value field not found"){
+         console.log(error.message)
+         return res.sendStatus(404)
+      }
+      if (error.message === "Filter field invalid"){
+         console.log(error.message)
+         return res.sendStatus(404)
+      }
+      if (error.message === "Value field invalid"){
+         console.log(error.message)
+         return res.sendStatus(400)
+      }
+      
+      console.log(error.message)
+      return res.sendStatus(500)
    }
 }

@@ -1,9 +1,11 @@
 import { Router } from "express";
 import multerConfig from "../config/multer.js";
-import paymentsController from '../controllers/payments-controller.js';
+import { createPaymentsController, getPaymentsController } from "../controllers/payments-controller.js";
 
-const paymentsRouter = Router()
+const paymentsRouter = Router();
 
-paymentsRouter.post('/', multerConfig.single("file"), paymentsController)
+paymentsRouter
+   .post("/", multerConfig.single("file"), createPaymentsController)
+   .get("/", getPaymentsController);
 
-export default paymentsRouter
+export default paymentsRouter;

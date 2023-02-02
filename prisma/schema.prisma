@@ -16,6 +16,7 @@ model contas {
   valor          Float
   propriedade    Int
   vencimento     String
+  mesVencimento  String
 }
 
 enum TipoDaConta {
