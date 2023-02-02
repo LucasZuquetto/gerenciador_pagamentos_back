@@ -1,5 +1,6 @@
 import { Readable } from "stream";
 import readLine from "readline";
+import dayjs from "dayjs";
 
 export default async function contasService(file) {
    const { buffer } = file;
@@ -11,26 +12,93 @@ export default async function contasService(file) {
    const bookingsLine = readLine.createInterface({
       input: readableFile,
    });
-   
-   const bookings = addDataInArray(bookingsLine)
-   
-   return bookings
+
+   const data = await addDataInArray(bookingsLine);
+
+   const payments = await createArrayOfPayments(data);
+
+   return payments;
 }
 
-function addDataInArray(bookingsLine){
-    const bookings = [];
+async function createArrayOfPayments(data) {
+   const payments = [];
+   for (let i = 0; i < data.length; i++) {
+      const booking = data[i];
+      const dateCheckOut = changeDateFormat(booking.checkOut);
+      const dateCheckin = changeDateFormat(booking.checkIn);
+      if (booking.portal === "Booking.com") {
+         payments.push({
+            tipo: "A_Receber",
+            valor:
+               booking.totalReservaSemImposto -
+               booking.comissaoIntermediarioPersonalizada,
+            propriedade: booking.propriedade,
+            vencimento: dayjs(dateCheckOut).format("DD-MM-YYYY"),
+         });
+         payments.push({
+            tipo: "A_Pagar",
+            valor: booking.extrasSemImpostos,
+            propriedade: booking.propriedade,
+            vencimento: dayjs(dateCheckOut).format("DD-MM-YYYY"), //TODO:primeira terça posterior a essa data
+         });
+      } else if (booking.portal === "Airbnb.com") {
+         payments.push({
+            tipo: "A_Receber",
+            valor:
+               booking.totalReservaSemImposto -
+               booking.comissaoIntermediarioPersonalizada,
+            propriedade: booking.propriedade,
+            vencimento:
+               dayjs(dateCheckin).add(5, "day").format("DD-MM-YYYY"),
+         });
+         payments.push({
+            tipo: "A_Pagar",
+            valor: booking.extrasSemImpostos,
+            propriedade: booking.propriedade,
+            vencimento: dayjs(dateCheckOut).format("DD-MM-YYYY"), //TODO:primeira terça posterior a essa data
+         });
+      }
+   }
+   return payments;
+}
 
-    let i = 0;
- 
-    for await (let line of bookingsLine) {
-       if (i <= 1) {
-          //2 primeiras linhas não são dados
-          i++;
-          continue;
-       }
-       const bookingsLineSplit = line.split(",");
-       bookings.push({
-          aluguelSEM: bookingsLineSplit[0],
-       });
-    }
+function changeDateFormat(date) {
+   const otherFormat =
+      date[3] +
+      date[4] +
+      "-" +
+      date[0] +
+      date[1] +
+      "-" +
+      date[6] +
+      date[7] +
+      date[8] +
+      date[9];
+
+   return otherFormat;
+}
+
+async function addDataInArray(bookingsLine) {
+   const bookings = [];
+
+   let i = 0;
+
+   for await (let line of bookingsLine) {
+      if (i <= 1) {
+         //2 primeiras linhas não são dados
+         i++;
+         continue;
+      }
+      const bookingsLineSplit = line.split(",");
+      bookings.push({
+         portal: bookingsLineSplit[17],
+         totalReservaSemImposto: Number(bookingsLineSplit[11]),
+         comissaoIntermediarioPersonalizada: Number(bookingsLineSplit[19]),
+         checkOut: bookingsLineSplit[3],
+         extrasSemImpostos: Number(bookingsLineSplit[8]),
+         propriedade: Number(bookingsLineSplit[15]),
+         checkIn: bookingsLineSplit[2],
+      });
+   }
+   return bookings;
 }

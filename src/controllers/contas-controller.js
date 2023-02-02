@@ -1,10 +1,11 @@
-import contasService from '../services/contas-service';
+import contasService from '../services/contas-service.js';
 
 export default async function contasController(req, res) {
    const { file } = req;
 
    try {
-    const bookings = await contasService(file)
+    const payments = await contasService(file)
+    res.send(payments)
    } catch (error) {
     return res.sendStatus(500)
    }
@@ -16,5 +17,4 @@ export default async function contasController(req, res) {
 //          },
 //       });
 //    }
-   return res.json(bookings);
 }
