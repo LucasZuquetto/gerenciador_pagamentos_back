@@ -119,7 +119,7 @@ async function addDataInArray(bookingsLine) {
 export async function getPaymentsService(vencimento, tipo, propriedade) {
    const filters = [];
    if (vencimento != undefined) {
-      filters.push(["vencimento",vencimento.slice(-7)]);
+      filters.push(["mesVencimento",vencimento.slice(-7)]);
    }
    if (tipo != undefined) {
       filters.push(["tipo",tipo]);
