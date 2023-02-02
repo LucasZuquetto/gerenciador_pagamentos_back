@@ -20,30 +20,18 @@ export async function createPaymentsRepository(payments) {
    }
 }
 
-export async function getPaymentsRepository(filter = "", value = "") {
-   if (filter === "" && value === "") {
+export async function getPaymentsRepository(filters) {
+   const where = {};
+
+   for (let i = 0; i < filters.length; i++) {
+      const filter = filters[i][0];
+      const value = filters[i][1];
+      where[filter] = value;
+   }
+   if (filters.length === 0) {
       return await prisma.contas.findMany();
    }
-   if (filter === "vencimento") {
-      const month = value.slice(-7);
-      return await prisma.contas.findMany({
-         where: {
-            mesVencimento: month,
-         },
-      });
-   }
-   if (filter === "tipo") {
-      return await prisma.contas.findMany({
-         where: {
-            tipo: value,
-         },
-      });
-   }
-   if (filter === "propriedade") {
-      return await prisma.contas.findMany({
-         where: {
-            propriedade: Number(value),
-         },
-      });
-   }
+   return await prisma.contas.findMany({
+      where,
+   });
 }

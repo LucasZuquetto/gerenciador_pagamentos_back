@@ -14,9 +14,9 @@ export async function createPaymentsController(req, res) {
 }
 
 export async function getPaymentsController(req, res) {
-   const {filter, value} = req.query
+   const {vencimento, tipo, propriedade} = req.query
    try {
-      const payments = await getPaymentsService(filter, value)
+      const payments = await getPaymentsService(vencimento, tipo, propriedade)
       res.send(payments)
    } catch (error) {
       if (error.message === "Value field not found"){

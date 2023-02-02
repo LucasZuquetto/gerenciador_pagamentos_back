@@ -116,12 +116,17 @@ async function addDataInArray(bookingsLine) {
    return bookings;
 }
 
-export async function getPaymentsService(filter, value) {
-   if (filter === undefined) {
-      const payments = getPaymentsRepository();
-      return payments;
+export async function getPaymentsService(vencimento, tipo, propriedade) {
+   const filters = [];
+   if (vencimento != undefined) {
+      filters.push(["vencimento",vencimento.slice(-7)]);
    }
-
-   const payments = getPaymentsRepository(filter, value);
+   if (tipo != undefined) {
+      filters.push(["tipo",tipo]);
+   }
+   if (propriedade != undefined) {
+      filters.push(["propriedade",Number(propriedade)]);
+   }
+   const payments = getPaymentsRepository(filters);
    return payments;
 }
