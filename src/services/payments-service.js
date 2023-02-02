@@ -102,11 +102,6 @@ async function addDataInArray(bookingsLine) {
    let i = 0;
 
    for await (let line of bookingsLine) {
-      if (i <= 1) {
-         //2 primeiras linhas não são dados
-         i++;
-         continue;
-      }
       const bookingsLineSplit = line.split(",");
       bookings.push({
          portal: bookingsLineSplit[17],
@@ -122,25 +117,11 @@ async function addDataInArray(bookingsLine) {
 }
 
 export async function getPaymentsService(filter, value) {
-   const regex =
-      /^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$/;
-   if ((filter && value === undefined) || value === "") {
-      throw new Error("Value field not found");
-   }
    if (filter === undefined) {
       const payments = getPaymentsRepository();
       return payments;
    }
-   if (filter != "tipo" && filter != "vencimento" && filter != "propriedade") {
-      throw new Error("Filter field invalid");
-   }
-   if (filter === "vencimento" && !regex.test(value)) {
-      throw new Error("Value field invalid");
-   } else if (filter === "tipo" && value != "A_Receber" && value != "A_Pagar") {
-      throw new Error("Value field invalid");
-   } else if (filter === "propriedade" && isNaN(value)) {
-      throw new Error("Value field invalid");
-   }
+
    const payments = getPaymentsRepository(filter, value);
    return payments;
 }
