@@ -1,9 +1,11 @@
 import { Readable } from "stream";
 import readLine from "readline";
 import dayjs from "dayjs";
+import weekday from "dayjs/plugin/weekday.js"
 
-export default async function contasService(file) {
+export default async function paymentsService(file) {
    const { buffer } = file;
+   dayjs.extend(weekday)
 
    const readableFile = new Readable();
    readableFile.push(buffer);
@@ -33,13 +35,13 @@ async function createArrayOfPayments(data) {
                booking.totalReservaSemImposto -
                booking.comissaoIntermediarioPersonalizada,
             propriedade: booking.propriedade,
-            vencimento: dayjs(dateCheckOut).format("DD-MM-YYYY"),
+            vencimento: dayjs(dateCheckOut).format("DD-MM-YYYY")
          });
          payments.push({
             tipo: "A_Pagar",
             valor: booking.extrasSemImpostos,
             propriedade: booking.propriedade,
-            vencimento: dayjs(dateCheckOut).format("DD-MM-YYYY"), //TODO:primeira terça posterior a essa data
+            vencimento: dayjs(dateCheckOut).day(2).add(7,"day").format("DD-MM-YYYY"),
          });
       } else if (booking.portal === "Airbnb.com") {
          payments.push({
@@ -55,7 +57,7 @@ async function createArrayOfPayments(data) {
             tipo: "A_Pagar",
             valor: booking.extrasSemImpostos,
             propriedade: booking.propriedade,
-            vencimento: dayjs(dateCheckOut).format("DD-MM-YYYY"), //TODO:primeira terça posterior a essa data
+            vencimento: dayjs(dateCheckOut).day(2).add(7,"day").format("DD-MM-YYYY"),
          });
       }
    }

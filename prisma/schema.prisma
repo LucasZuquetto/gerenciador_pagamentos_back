@@ -10,12 +10,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Contas {
+model contas {
   id           Int            @id @default(autoincrement())
   tipo  TipoDaConta
-  valor          Int
+  valor          Float
   propriedade    Int
-  vencimento     DateTime
+  vencimento     String
 }
 
 enum TipoDaConta {
