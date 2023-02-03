@@ -1,6 +1,4 @@
 export async function validateQuery(req, res, next) {
-    console.log(req.query)
-
    const { propriedade, vencimento, tipo } = req.query;
    if (isNaN(propriedade) && propriedade != undefined) {
       return res.status(400).send("Value field invalid");
